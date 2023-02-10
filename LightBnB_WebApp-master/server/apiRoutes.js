@@ -1,7 +1,7 @@
 module.exports = function(router, database) {
 
   router.get('/properties', (req, res) => {
-    database.getAllProperties(req.query, 20) // changed this from (req.query, 20) to (req.query) thereby setting a default limit of 10 
+    database.getAllProperties(req.query, 20) 
     .then(properties => res.send({properties}))
     .catch(e => {
       console.error(e);
