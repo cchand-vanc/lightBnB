@@ -72,16 +72,19 @@ exports.getUserWithId = getUserWithId;
  * @param {{name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
  */
-const addUser =  function(user) {
+const addUser = function (user) {
   return pool
-  .query(`
+    .query(`
     INSERT INTO users (name, password, email)
     VALUES ($1, $2, $3)
     RETURNING *
   `, [user.name, user.password, user.email])
-  .then((result) => {
-    return result.rows;
-  })
+    .then((result) => {
+      return result.rows;
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
 }
 exports.addUser = addUser;
 
@@ -93,7 +96,23 @@ exports.addUser = addUser;
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+  return pool
+  .query(`
+  SELECT properties.*, reservations.id as id, reservations.start_date as start_date, properties.cost_per_night as cost_per_night, avg(rating) as average_rating
+  FROM properties
+  JOIN reservations ON reservations.property_id = properties.id
+  LEFT JOIN property_reviews ON property_reviews.property_id = properties.id
+  WHERE reservations.guest_id = $1
+  GROUP BY reservations.id, properties.id
+  ORDER BY reservations.start_date
+  `, [guest_id])
+    .then((result) => {
+    return result.rows;
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
+  ;
 }
 exports.getAllReservations = getAllReservations;
 
